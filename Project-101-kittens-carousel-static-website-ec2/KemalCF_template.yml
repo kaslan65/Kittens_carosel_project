@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  EC2ApacheInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0022f774911c1d690
+      InstanceType: t2.micro
+      Tags:
+        - Key: Name
+          Value: Kitten_Project
+        - Key: Name
+          Value: My_Apache
+      UserData: 
+        Fn::Base64:
+          !Sub |
+            #! /bin/bash
+            sudo yum update -y
+            sudo yum install -y httpd
+            systemctl start httpd
+            chmod 777 /var/www/html
+            cd /var/www/html
+            # create a custom index.html file
+            wget https://raw.githubusercontent.com/SuleymanBat/kittens_carousel_project/main/Project-101-kittens-carousel-static-website-ec2/static-web/index.html
+            wget https://raw.githubusercontent.com/SuleymanBat/kittens_carousel_project/main/Project-101-kittens-carousel-static-website-ec2/static-web/cat0.jpg
+            wget https://raw.githubusercontent.com/SuleymanBat/kittens_carousel_project/main/Project-101-kittens-carousel-static-website-ec2/static-web/cat1.jpg
+            wget https://raw.githubusercontent.com/SuleymanBat/kittens_carousel_project/main/Project-101-kittens-carousel-static-website-ec2/static-web/cat2.jpg
+            # start apache server
+            systemctl restart httpd
+            systemctl enable httpd /var/www/html/index.html
+      SecurityGroups:
+        - !Ref ApacheSecurityGroup
+      KeyName: new_pen
+
+  ApacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "KittensCarousel-SecurityGroup"
+      GroupDescription: Allow access on ports 80 and 22
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          CidrIp: 80.217.117.130/32
+          FromPort: 22
+          ToPort: 22
+        - IpProtocol: "tcp"
+          CidrIp: "0.0.0.0/0"
+          FromPort: 80
+          ToPort: 80
